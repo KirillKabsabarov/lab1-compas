@@ -110,6 +110,7 @@
             soundEnabled = true; // Разрешаем воспроизведение звука
             this.style.display = 'none'; // Скрываем кнопку после нажатия
             audio.play(); // Проигрываем звук один раз
+            window.addEventListener('deviceorientation', handleOrientation); // Подключаем обработчик наклона
         });
 
         // Функция для работы с гироскопом
@@ -146,7 +147,7 @@
                 DeviceOrientationEvent.requestPermission()
                 .then(permissionState => {
                     if (permissionState === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
+                        // Если разрешение предоставлено, ждем нажатия кнопки для подключения обработчика
                     } else {
                         alert("Доступ к гироскопу отклонен.");
                     }
