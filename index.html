@@ -24,30 +24,61 @@
             color: red;
             display: none;
         }
+        .permission {
+            font-size: 1rem;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .permission:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
     <h1>Наклон устройства</h1>
     <div class="angle">Угол: <span id="angleValue">0</span>°</div>
     <div class="alert" id="alertMessage">Внимание! Превышен угол наклона!</div>
+    <button class="permission" id="requestPermission">Запросить доступ к сенсорам</button>
 
     <script>
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener('deviceorientation', function(event) {
-                // Получаем значения гироскопа
-                let tiltLR = event.gamma; // Наклон влево-вправо
-                document.getElementById('angleValue').textContent = tiltLR.toFixed(1);
+        // Функция для работы с гироскопом
+        function handleOrientation(event) {
+            let tiltLR = event.gamma; // Наклон влево-вправо
+            document.getElementById('angleValue').textContent = tiltLR.toFixed(1);
 
-                // Проверка, если угол больше 15 градусов
-                if (Math.abs(tiltLR) > 15) {
-                    document.getElementById('alertMessage').style.display = 'block';
-                } else {
-                    document.getElementById('alertMessage').style.display = 'none';
-                }
-            });
-        } else {
-            alert("Ваше устройство не поддерживает работу с гироскопом.");
+            // Проверка, если угол больше 15 градусов
+            if (Math.abs(tiltLR) > 15) {
+                document.getElementById('alertMessage').style.display = 'block';
+            } else {
+                document.getElementById('alertMessage').style.display = 'none';
+            }
         }
+
+        // Обработчик нажатия на кнопку для запроса разрешения
+        document.getElementById('requestPermission').addEventListener('click', function() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS 13+ требует запроса разрешения
+                DeviceOrientationEvent.requestPermission()
+                .then(function(permissionState) {
+                    if (permissionState === 'granted') {
+                        // Если доступ разрешен, регистрируем обработчик событий
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        document.getElementById('requestPermission').style.display = 'none'; // Скрываем кнопку
+                    } else {
+                        alert("Доступ к гироскопу отклонен.");
+                    }
+                })
+                .catch(console.error);
+            } else {
+                // Для браузеров без необходимости явного запроса разрешений
+                window.addEventListener('deviceorientation', handleOrientation);
+                document.getElementById('requestPermission').style.display = 'none'; // Скрываем кнопку
+            }
+        });
     </script>
 </body>
 </html>
