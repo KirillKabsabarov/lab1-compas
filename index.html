@@ -6,16 +6,21 @@
     <title>Гироскоп предупреждение</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            transition: background-color 0.5s ease;
             background-color: #f0f0f0;
         }
-        .angle {
+        h1 {
+            font-size: 2.5rem;
+            color: #333;
+        }
+        .angle-display {
             font-size: 2rem;
             margin: 20px;
         }
@@ -32,28 +37,49 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
         }
         .permission:hover {
             background-color: #45a049;
+        }
+        #arrow {
+            width: 100px;
+            height: 100px;
+            margin-top: 20px;
+            transform-origin: 50% 100%;
+            transition: transform 0.3s ease-in-out;
         }
     </style>
 </head>
 <body>
     <h1>Наклон устройства</h1>
-    <div class="angle">Угол: <span id="angleValue">0</span>°</div>
+    <div class="angle-display">Угол: <span id="angleValue">0</span>°</div>
+    <img id="arrow" src="https://img.icons8.com/ios-filled/100/000000/long-arrow-up.png" alt="Индикатор угла">
     <div class="alert" id="alertMessage">Внимание! Превышен угол наклона!</div>
     <button class="permission" id="requestPermission">Запросить доступ к сенсорам</button>
 
     <script>
+        let audio = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Звук предупреждения
+
         // Функция для работы с гироскопом
         function handleOrientation(event) {
             let tiltLR = event.gamma; // Наклон влево-вправо
             document.getElementById('angleValue').textContent = tiltLR.toFixed(1);
 
-            // Проверка, если угол больше 15 градусов
+            // Поворот стрелки в зависимости от угла
+            let arrow = document.getElementById('arrow');
+            arrow.style.transform = `rotate(${tiltLR}deg)`;
+
+            // Изменение фона в зависимости от угла
             if (Math.abs(tiltLR) > 15) {
+                document.body.style.backgroundColor = '#ffcccc'; // Красный фон, если угол больше 15
                 document.getElementById('alertMessage').style.display = 'block';
+
+                // Воспроизведение звука, если угол превышен
+                audio.play();
             } else {
+                document.body.style.backgroundColor = '#f0f0f0'; // Возвращаем нормальный фон
                 document.getElementById('alertMessage').style.display = 'none';
             }
         }
