@@ -76,20 +76,6 @@
             top: 280px; /* Позиционирование ниже круга */
             width: 100%; /* Задаем ширину 100% для центрирования текста */
         }
-        #soundButton {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1rem;
-            color: #fff;
-            background: #0072ff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        #soundButton:hover {
-            background: #005bb5;
-        }
     </style>
 </head>
 <body>
@@ -97,21 +83,11 @@
     <div class="container">
         <div id="circle"><span id="angleValue">0°</span></div>
         <div class="alert" id="alertMessage">Осторожно! Превышен угол наклона!</div>
-        <button id="soundButton">Включить звук</button>
     </div>
 
     <script>
         // Звук предупреждения
         let audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
-        let soundEnabled = false;
-
-        // Инициализация звука
-        document.getElementById('soundButton').addEventListener('click', function() {
-            soundEnabled = true; // Разрешаем воспроизведение звука
-            this.style.display = 'none'; // Скрываем кнопку после нажатия
-            audio.play(); // Проигрываем звук один раз
-            window.addEventListener('deviceorientation', handleOrientation); // Подключаем обработчик наклона
-        });
 
         // Функция для работы с гироскопом
         function handleOrientation(event) {
@@ -131,9 +107,7 @@
                 document.body.style.background = 'linear-gradient(135deg, #ff7e5f, #feb47b)'; // Красный градиент
                 circle.style.background = 'conic-gradient(#feb47b, #ff7e5f)'; // Красный круг
                 alertMessage.style.display = 'block';
-                if (soundEnabled) {
-                    audio.play(); // Проигрываем звук только если звук разрешен
-                }
+                audio.play();
             } else {
                 document.body.style.background = 'linear-gradient(135deg, #0072ff, #00c6ff)'; // Синий градиент
                 circle.style.background = 'conic-gradient(#00c6ff, #0072ff)'; // Синий круг
@@ -147,7 +121,7 @@
                 DeviceOrientationEvent.requestPermission()
                 .then(permissionState => {
                     if (permissionState === 'granted') {
-                        // Если разрешение предоставлено, ждем нажатия кнопки для подключения обработчика
+                        window.addEventListener('deviceorientation', handleOrientation);
                     } else {
                         alert("Доступ к гироскопу отклонен.");
                     }
