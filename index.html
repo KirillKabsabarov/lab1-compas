@@ -107,7 +107,12 @@
                 document.body.style.background = 'linear-gradient(135deg, #ff7e5f, #feb47b)'; // Красный градиент
                 circle.style.background = 'conic-gradient(#feb47b, #ff7e5f)'; // Красный круг
                 alertMessage.style.display = 'block';
-                audio.play();
+
+                // Проверка, чтобы звук играл только один раз
+                if (audio.paused) {
+                    audio.currentTime = 0; // Перезапускаем звук
+                    audio.play();
+                }
             } else {
                 document.body.style.background = 'linear-gradient(135deg, #0072ff, #00c6ff)'; // Синий градиент
                 circle.style.background = 'conic-gradient(#00c6ff, #0072ff)'; // Синий круг
