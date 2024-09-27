@@ -3,108 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Гироскоп предупреждение</title>
+    <title>Современный гироскоп</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            background: linear-gradient(135deg, #0072ff, #00c6ff);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             transition: background-color 0.5s ease;
-            background-color: #f0f0f0;
         }
         h1 {
-            font-size: 2.5rem;
-            color: #333;
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .container {
+            text-align: center;
+            color: #fff;
         }
         .angle-display {
             font-size: 2rem;
-            margin: 20px;
+            margin-top: 20px;
+        }
+        #circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#00c6ff, #0072ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+        #circle span {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
         }
         .alert {
             font-size: 1.5rem;
             color: red;
+            margin-top: 20px;
             display: none;
-        }
-        .permission {
-            font-size: 1rem;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s;
-        }
-        .permission:hover {
-            background-color: #45a049;
-        }
-        #arrow {
-            width: 100px;
-            height: 100px;
-            margin-top: 20px;
-            transform-origin: 50% 100%;
-            transition: transform 0.3s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <h1>Наклон устройства</h1>
-    <div class="angle-display">Угол: <span id="angleValue">0</span>°</div>
-    <img id="arrow" src="https://img.icons8.com/ios-filled/100/000000/long-arrow-up.png" alt="Индикатор угла">
-    <div class="alert" id="alertMessage">Внимание! Превышен угол наклона!</div>
-    <button class="permission" id="requestPermission">Запросить доступ к сенсорам</button>
+    <div class="container">
+        <h1>Наклон устройства</h1>
+        <div id="circle"><span id="angleValue">0°</span></div>
+        <div class="alert" id="alertMessage">Осторожно! Превышен угол наклона!</div>
+    </div>
 
     <script>
-        let audio = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Звук предупреждения
+        // Звук предупреждения
+        let audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
 
         // Функция для работы с гироскопом
         function handleOrientation(event) {
             let tiltLR = event.gamma; // Наклон влево-вправо
-            document.getElementById('angleValue').textContent = tiltLR.toFixed(1);
+            let angleValue = document.getElementById('angleValue');
+            let alertMessage = document.getElementById('alertMessage');
+            let circle = document.getElementById('circle');
+            
+            // Обновление отображения угла
+            angleValue.textContent = `${tiltLR.toFixed(1)}°`;
 
-            // Поворот стрелки в зависимости от угла
-            let arrow = document.getElementById('arrow');
-            arrow.style.transform = `rotate(${tiltLR}deg)`;
+            // Поворот кругового индикатора
+            circle.style.transform = `rotate(${tiltLR}deg)`;
 
-            // Изменение фона в зависимости от угла
+            // Если угол превышает 15 градусов
             if (Math.abs(tiltLR) > 15) {
-                document.body.style.backgroundColor = '#ffcccc'; // Красный фон, если угол больше 15
-                document.getElementById('alertMessage').style.display = 'block';
-
-                // Воспроизведение звука, если угол превышен
+                document.body.style.background = 'linear-gradient(135deg, #ff7e5f, #feb47b)'; // Красный градиент
+                alertMessage.style.display = 'block';
                 audio.play();
             } else {
-                document.body.style.backgroundColor = '#f0f0f0'; // Возвращаем нормальный фон
-                document.getElementById('alertMessage').style.display = 'none';
+                document.body.style.background = 'linear-gradient(135deg, #0072ff, #00c6ff)'; // Синий градиент
+                alertMessage.style.display = 'none';
             }
         }
 
-        // Обработчик нажатия на кнопку для запроса разрешения
-        document.getElementById('requestPermission').addEventListener('click', function() {
+        // Автоматический запрос разрешения
+        function requestGyroPermission() {
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ требует запроса разрешения
                 DeviceOrientationEvent.requestPermission()
-                .then(function(permissionState) {
+                .then(permissionState => {
                     if (permissionState === 'granted') {
-                        // Если доступ разрешен, регистрируем обработчик событий
                         window.addEventListener('deviceorientation', handleOrientation);
-                        document.getElementById('requestPermission').style.display = 'none'; // Скрываем кнопку
                     } else {
                         alert("Доступ к гироскопу отклонен.");
                     }
                 })
                 .catch(console.error);
             } else {
-                // Для браузеров без необходимости явного запроса разрешений
+                // Для браузеров без явного запроса разрешений
                 window.addEventListener('deviceorientation', handleOrientation);
-                document.getElementById('requestPermission').style.display = 'none'; // Скрываем кнопку
             }
-        });
+        }
+
+        // Запрос разрешения на доступ при загрузке страницы
+        window.onload = function() {
+            requestGyroPermission();
+        }
     </script>
 </body>
 </html>
