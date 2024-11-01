@@ -3,138 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Современный гироскоп</title>
+    <title>Компас</title>
     <style>
-        body {
+        /* Стили для компаса */
+        body, html {
             margin: 0;
             padding: 0;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #0072ff, #00c6ff);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            transition: background 0.5s ease;
+            background-color: #f0f4f8;
+            font-family: Arial, sans-serif;
         }
-        h1 {
-            font-size: 2rem;
-            color: #fff;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-            position: absolute;
-            top: 20px;
-            text-align: center;
-            width: 100%;
-        }
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            position: relative; /* Устанавливаем относительное позиционирование для контейнера */
-        }
-        #circle {
+
+        .compass-container {
             width: 250px;
             height: 250px;
-            border-radius: 50%;
-            background: conic-gradient(#00c6ff, #0072ff);
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, 0.1), 0 0 60px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, background 0.5s ease;
-            position: relative; /* Устанавливаем относительное позиционирование для круга */
         }
-        #circle::before {
-            content: '';
-            position: absolute;
-            width: 270px;
-            height: 270px;
+
+        .compass {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent);
-            animation: rotate 5s linear infinite;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #e0e4e8;
+            overflow: hidden;
         }
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        .compass-needle {
+            width: 8px;
+            height: 120px;
+            background: linear-gradient(to bottom, #ff3b30, #ff6e6b);
+            position: absolute;
+            top: 15px;
+            border-radius: 4px;
+            transform-origin: bottom center;
+            transition: transform 0.2s ease-out;
+            z-index: 2;
         }
-        #circle span {
-            font-size: 2.5rem;
+
+        .compass-center {
+            width: 20px;
+            height: 20px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 3;
+        }
+
+        .compass-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
             font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
-            z-index: 1;
+            font-size: 1.2em;
         }
-        .alert {
-            font-size: 1.5rem;
-            color: #fff;
-            margin-top: 10px; /* Уменьшение отступа между кругом и предупреждением */
-            display: none;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-            position: absolute; /* Устанавливаем абсолютное позиционирование для предупреждения */
-            top: 280px; /* Позиционирование ниже круга */
+
+        .marker {
+            position: absolute;
         }
+
+        .marker.north { top: 10px; }
+        .marker.south { bottom: 10px; transform: rotate(180deg); }
+        .marker.east { right: 10px; transform: rotate(90deg); }
+        .marker.west { left: 10px; transform: rotate(-90deg); }
     </style>
 </head>
 <body>
-    <h1>Наклон устройства</h1>
-    <div class="container">
-        <div id="circle"><span id="angleValue">0°</span></div>
-        <div class="alert" id="alertMessage">Осторожно! Превышен угол наклона!</div>
+    <div class="compass-container">
+        <div class="compass">
+            <div class="compass-needle"></div>
+            <div class="compass-center"></div>
+            <div class="compass-markers">
+                <div class="marker north">N</div>
+                <div class="marker east">E</div>
+                <div class="marker south">S</div>
+                <div class="marker west">W</div>
+            </div>
+        </div>
     </div>
-
     <script>
-        // Звук предупреждения
-        let audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
+        // JavaScript для плавного вращения стрелки компаса
+        let lastAlpha = 0;
 
-        // Функция для работы с гироскопом
-        function handleOrientation(event) {
-            let tiltLR = event.gamma; // Наклон влево-вправо
-            let angleValue = document.getElementById('angleValue');
-            let alertMessage = document.getElementById('alertMessage');
-            let circle = document.getElementById('circle');
-            
-            // Обновление отображения угла
-            angleValue.textContent = `${tiltLR.toFixed(1)}°`;
+        function smoothRotate(newAlpha) {
+            const needle = document.querySelector(".compass-needle");
 
-            // Поворот кругового индикатора
-            circle.style.transform = `rotate(${tiltLR}deg)`;
+            // Рассчитываем разницу в угле
+            const delta = ((newAlpha - lastAlpha + 540) % 360) - 180;
+            lastAlpha = lastAlpha + delta;
 
-            // Если угол превышает 15 градусов
-            if (Math.abs(tiltLR) > 15) {
-                document.body.style.background = 'linear-gradient(135deg, #ff7e5f, #feb47b)'; // Красный градиент
-                circle.style.background = 'conic-gradient(#feb47b, #ff7e5f)'; // Красный круг
-                alertMessage.style.display = 'block';
-                audio.play();
-            } else {
-                document.body.style.background = 'linear-gradient(135deg, #0072ff, #00c6ff)'; // Синий градиент
-                circle.style.background = 'conic-gradient(#00c6ff, #0072ff)'; // Синий круг
-                alertMessage.style.display = 'none';
-            }
+            needle.style.transform = `rotate(${lastAlpha}deg)`;
         }
 
-        // Автоматический запрос разрешения
-        function requestGyroPermission() {
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                    } else {
-                        alert("Доступ к гироскопу отклонен.");
-                    }
-                })
-                .catch(console.error);
-            } else {
-                // Для браузеров без явного запроса разрешений
-                window.addEventListener('deviceorientation', handleOrientation);
-            }
-        }
-
-        // Запрос разрешения на доступ при загрузке страницы
-        window.onload = function() {
-            requestGyroPermission();
-        }
+        window.addEventListener("deviceorientation", (event) => {
+            const alpha = event.alpha || 0; // Получаем угол поворота по оси Z
+            smoothRotate(alpha);
+        });
     </script>
 </body>
 </html>
