@@ -11,6 +11,7 @@
             padding: 0;
             height: 100%;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             background-color: #f0f4f8;
@@ -80,6 +81,21 @@
         .marker.south { bottom: 10px; transform: rotate(180deg); }
         .marker.east { right: 10px; transform: rotate(90deg); }
         .marker.west { left: 10px; transform: rotate(-90deg); }
+
+        .permission-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+
+        .permission-button:active {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -95,24 +111,45 @@
             </div>
         </div>
     </div>
+    <button class="permission-button" onclick="requestPermission()">Активировать компас</button>
     <script>
-        // JavaScript для плавного вращения стрелки компаса
+        // Запрос разрешения на доступ к сенсорам на iOS
+        function requestPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener("deviceorientation", handleOrientation);
+                            document.querySelector('.permission-button').style.display = 'none';
+                        } else {
+                            alert("Доступ к гироскопу отклонён.");
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // Android и другие устройства, которые не требуют разрешения
+                window.addEventListener("deviceorientation", handleOrientation);
+                document.querySelector('.permission-button').style.display = 'none';
+            }
+        }
+
+        // Плавное вращение стрелки компаса
         let lastAlpha = 0;
+
+        function handleOrientation(event) {
+            const alpha = event.alpha || 0; // Получаем угол поворота по оси Z
+            smoothRotate(alpha);
+        }
 
         function smoothRotate(newAlpha) {
             const needle = document.querySelector(".compass-needle");
 
-            // Рассчитываем разницу в угле
+            // Рассчитываем разницу в угле для плавного поворота
             const delta = ((newAlpha - lastAlpha + 540) % 360) - 180;
             lastAlpha = lastAlpha + delta;
 
             needle.style.transform = `rotate(${lastAlpha}deg)`;
         }
-
-        window.addEventListener("deviceorientation", (event) => {
-            const alpha = event.alpha || 0; // Получаем угол поворота по оси Z
-            smoothRotate(alpha);
-        });
     </script>
 </body>
 </html>
