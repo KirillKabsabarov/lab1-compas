@@ -1,165 +1,155 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Распознавание объектов</title>
-  <style>
-    /* Основные стили */
-    body {
-      font-family: 'Roboto', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #74ebd5, #acb6e5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      color: #fff;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Компас</title>
+    <style>
+        /* Стили для компаса */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f4f8;
+            font-family: Arial, sans-serif;
+        }
 
-    .container {
-      background: #ffffff;
-      color: #333;
-      border-radius: 15px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-      padding: 30px;
-      text-align: center;
-      max-width: 600px;
-      width: 90%;
-    }
+        .compass-container {
+            width: 250px;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      color: #333;
-    }
+        .compass {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #e0e4e8;
+            overflow: hidden;
+        }
 
-    #imageInput {
-      padding: 10px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      outline: none;
-      cursor: pointer;
-      background-color: #f9f9f9;
-      transition: all 0.3s ease;
-    }
+        .compass-needle {
+            width: 8px;
+            height: 120px;
+            background: linear-gradient(to bottom, #ff3b30, #ff6e6b);
+            position: absolute;
+            top: 15px;
+            border-radius: 4px;
+            transform-origin: bottom center;
+            transition: transform 0.2s ease-out;
+            z-index: 2;
+        }
 
-    #imageInput:hover {
-      background-color: #eee;
-    }
+        .compass-center {
+            width: 20px;
+            height: 20px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 3;
+        }
 
-    #imageCanvas {
-      margin: 20px 0;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      max-width: 100%;
-    }
+        .compass-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
 
-    #results {
-      font-size: 1.2rem;
-      margin-top: 20px;
-    }
+        .marker {
+            position: absolute;
+        }
 
-    .loading {
-      font-size: 1.2rem;
-      color: #888;
-    }
+        .marker.north { top: 10px; }
+        .marker.south { bottom: 10px; transform: rotate(180deg); }
+        .marker.east { right: 10px; transform: rotate(90deg); }
+        .marker.west { left: 10px; transform: rotate(-90deg); }
 
-    /* Кнопка "Загрузить изображение" */
-    input[type="file"] {
-      display: none;
-    }
+        .permission-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+        }
 
-    label {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: bold;
-      display: inline-block;
-      transition: all 0.3s ease;
-    }
-
-    label:hover {
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Анимация текста */
-    .fade-in {
-      animation: fadeIn 1s ease-in;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-  </style>
+        .permission-button:active {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Распознавание объектов</h1>
-    <label for="imageInput">Выбрать изображение</label>
-    <input type="file" id="imageInput" accept="image/*">
-    <canvas id="imageCanvas"></canvas>
-    <p id="results" class="loading">Загрузка модели...</p>
-  </div>
+    <div class="compass-container">
+        <div class="compass">
+            <div class="compass-needle"></div>
+            <div class="compass-center"></div>
+            <div class="compass-markers">
+                <div class="marker north">N</div>
+                <div class="marker east">E</div>
+                <div class="marker south">S</div>
+                <div class="marker west">W</div>
+            </div>
+        </div>
+    </div>
+    <button class="permission-button" onclick="requestPermission()">Активировать компас</button>
+    <script>
+        // Запрос разрешения на доступ к сенсорам на iOS
+        function requestPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener("deviceorientation", handleOrientation);
+                            document.querySelector('.permission-button').style.display = 'none';
+                        } else {
+                            alert("Доступ к гироскопу отклонён.");
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // Android и другие устройства, которые не требуют разрешения
+                window.addEventListener("deviceorientation", handleOrientation);
+                document.querySelector('.permission-button').style.display = 'none';
+            }
+        }
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
-  <script>
-    const imageInput = document.getElementById("imageInput");
-    const imageCanvas = document.getElementById("imageCanvas");
-    const results = document.getElementById("results");
-    const ctx = imageCanvas.getContext("2d");
+        // Плавное вращение стрелки компаса
+        let lastAlpha = 0;
 
-    let model;
+        function handleOrientation(event) {
+            const alpha = event.alpha || 0; // Получаем угол поворота по оси Z
+            smoothRotate(alpha);
+        }
 
-    // Загрузка модели MobileNet
-    mobilenet.load().then((loadedModel) => {
-      model = loadedModel;
-      results.textContent = "Модель загружена! Выберите изображение.";
-    });
+        function smoothRotate(newAlpha) {
+            const needle = document.querySelector(".compass-needle");
 
-    // Обработка изображения
-    imageInput.addEventListener("change", async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
+            // Рассчитываем разницу в угле для плавного поворота
+            const delta = ((newAlpha - lastAlpha + 540) % 360) - 180;
+            lastAlpha = lastAlpha + delta;
 
-      // Отображение изображения на canvas
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = async () => {
-        imageCanvas.width = img.width;
-        imageCanvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        results.textContent = "Распознаем...";
-
-        // Предсказание с использованием модели
-        const predictions = await model.classify(img);
-        displayResults(predictions);
-      };
-    });
-
-    // Вывод результатов
-    function displayResults(predictions) {
-      results.innerHTML = predictions
-        .map(
-          (p) =>
-            `<p class="fade-in">${p.className} - ${Math.round(
-              p.probability * 100
-            )}%</p>`
-        )
-        .join("");
-    }
-  </script>
+            needle.style.transform = `rotate(${lastAlpha}deg)`;
+        }
+    </script>
 </body>
 </html>
